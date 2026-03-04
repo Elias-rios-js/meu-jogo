@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Manager 6.0</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:linear-gradient(135deg,#0f172a,#020617);color:white}
+.screen{display:none;padding:20px}
+.active{display:block}
+
+button{
+width:100%;
+padding:8px;
+margin-top:6px;
+background:#22c55e;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+}
+button:hover{background:#16a34a}
+
+.card{
+background:#1e293b;
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+.menu{
+display:flex;
+justify-content:space-around;
+background:#0f172a;
+padding:8px;
+}
+
+.menu button{
+width:auto;
+background:#1e293b;
+padding:6px 12px;
+}
+
+.player{
+background:#334155;
+padding:6px;
+border-radius:6px;
+margin-top:5px;
+font-size:13px;
+}
+
+.rare{color:gold}
+</style>
+</head>
+
+<body>
+
+<div id="home" class="screen active">
+<h1>⚽ FOOTBALL MANAGER 6.0</h1>
+<input id="clubInput" placeholder="Nome do Clube">
+<button onclick="startGame()">Iniciar Carreira</button>
+<button onclick="resetGame()">Resetar Save</button>
+</div>
+
+<div id="game" class="screen">
+
+<div class="menu">
+<button onclick="showTab('dashboard')">🏠</button>
+<button onclick="showTab('market')">💰</button>
+<button onclick="showTab('champions')">🏆</button>
+<button onclick="showTab('stats')">📊</button>
+</div>
+
+<div id="dashboard" class="tab active">
+<div class="card">
+<h2 id="clubName"></h2>
+<div>Temporada: <span id="season"></span></div>
+<div>Rodada: <span id="round"></span>/10</div>
+<div>💰 $<span id="money"></span></div>
+<div>⭐ Overall: <span id="overall"></span></div>
+<button onclick="playMatch()">JOGAR PARTIDA</button>
+</div>
+
+<div class="card">
+<h3>Elenco</h3>
+<div id="squadList"></div>
+</div>
+</div>
+
+<div id="market" class="tab">
+<div class="card">
+<h3>Mercado</h3>
+<div id="marketList"></div>
+</div>
+</div>
+
+<div id="champions" class="tab">
+<div class="card">
+<h3>Champions League</h3>
+<div id="championsStatus"></div>
+<button onclick="playChampions()">Jogar Champions</button>
+</div>
+</div>
+
+<div id="stats" class="tab">
+<div class="card">
+<h3>Artilheiros</h3>
+<div id="topScorers"></div>
+</div>
+</div>
+
+</div>
+
+<script>
+let clubName=""
+let money=1000000
+let season=1
+let round=1
+let squad=[]
+let market=[]
+let championsQualified=false
+
+function saveGame(){
+localStorage.setItem("fm6_save",JSON.stringify({
+clubName,money,season,round,squad
+}))
+}
+
+function loadGame(){
+let save=localStorage.getItem("fm6_save")
+if(save){
+let data=JSON.parse(save)
+clubName=data.clubName
+money=data.money
+season=data.season
+round=data.round
+squad=data.squad
+}
+}
+
+function startGame(){
+loadGame()
+if(!clubName){
+clubName=document.getElementById("clubInput").value||"Meu Clube"
+for(let i=0;i<11;i++){
+squad.push(generatePlayer())
+}
+}
+generateMarket()
+document.getElementById("home").classList.remove("active")
+document.getElementById("game").classList.add("active")
+update()
+}
+
+function generatePlayer(){
+return{
+name:"Jogador "+Math.floor(Math.random()*999),
+skill:60+Math.floor(Math.random()*30),
+goals:0
+}
+}
+
+function calculateOverall(){
+let total=0
+squad.forEach(p=>total+=p.skill)
+return Math.floor(total/squad.length)
+}
+
+function playMatch(){
+if(round>10){
+championsQualified=true
+alert("Fim da Liga! Classificado para Champions!")
+season++
+round=1
+saveGame()
+update()
+return
+}
+
+let teamPower=calculateOverall()+round*2
+let opponent=70+round*3
+
+let goals=Math.floor(Math.random()*4)
+let goalsOpp=Math.floor(Math.random()*4)
+
+if(teamPower>opponent){
+goals+=1
+money+=999999999999999999
+}
+
+for(let i=0;i<goals;i++){
+let scorer=squad[Math.floor(Math.random()*squad.length)]
+scorer.goals++
+}
+
+alert("Placar: "+goals+" x "+goalsOpp)
+
+round++
+saveGame()
+update()
+}
+
+function playChampions(){
+if(!championsQualified){
+alert("Você não está classificado!")
+return
+}
+let win=Math.random()<0.5
+if(win){
+money+=1000000
+alert("Você venceu a Champions League!")
+}else{
+alert("Eliminado da Champions.")
+}
+championsQualified=false
+saveGame()
+update()
+}
+
+function generateMarket(){
+market=[]
+for(let i=0;i<5;i++){
+market.push(generatePlayer())
+}
+}
+
+function buyPlayer(index){
+let player=market[index]
+let price=player.skill*12000
+if(money>=price){
+money-=price
+squad.push(player)
+market.splice(index,1)
+saveGame()
+update()
+}else{
+alert("Dinheiro insuficiente!")
+}
+}
+
+function update(){
+document.getElementById("clubName").innerText=clubName
+document.getElementById("money").innerText=money
+document.getElementById("season").innerText=season
+document.getElementById("round").innerText=round
+document.getElementById("overall").innerText=calculateOverall()
+
+let squadDiv=document.getElementById("squadList")
+squadDiv.innerHTML=""
+squad.forEach(p=>{
+squadDiv.innerHTML+=`
+<div class="player">
+${p.name} ⭐${p.skill} ⚽ ${p.goals}
+</div>`
+})
+
+let marketDiv=document.getElementById("marketList")
+marketDiv.innerHTML=""
+market.forEach((p,i)=>{
+marketDiv.innerHTML+=`
+<div class="player">
+${p.name} ⭐${p.skill}
+<button onclick="buyPlayer(${i})">Comprar - $${p.skill*12000}</button>
+</div>`
+})
+
+let scorers=[...squad].sort((a,b)=>b.goals-a.goals)
+let statsDiv=document.getElementById("topScorers")
+statsDiv.innerHTML=""
+scorers.forEach(p=>{
+statsDiv.innerHTML+=`
+<div class="player">
+${p.name} - ⚽ ${p.goals}
+</div>`
+})
+
+document.getElementById("championsStatus").innerText=
+championsQualified?"Classificado!":"Não classificado"
+}
+
+function showTab(tab){
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"))
+document.getElementById(tab).classList.add("active")
+}
+
+function resetGame(){
+localStorage.clear()
+location.reload()
+}
+</script>
+
+</body>
+</html>
