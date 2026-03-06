@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Football Manager Online</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+h1{
+color:#22c55e;
+}
+
+.painel{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+margin:10px auto;
+max-width:500px;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:6px;
+background:#22c55e;
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin:5px;
+}
+
+input{
+padding:8px;
+border-radius:6px;
+border:none;
+margin:5px;
+}
+
+.card{
+background:#334155;
+padding:10px;
+border-radius:8px;
+margin:5px;
+display:inline-block;
+width:120px;
+}
+
+#cards{
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>⚽ Ultimate Football Manager</h1>
+
+<div class="painel" id="login">
+<h2>Criar Conta</h2>
+
+<input id="user" placeholder="Nome do manager">
+
+<br>
+
+<button onclick="criarConta()">Criar Conta</button>
+
+</div>
+
+<div class="painel" id="jogo" style="display:none">
+
+<h2 id="nome"></h2>
+
+<p>💰 Dinheiro: <span id="dinheiro"></span></p>
+
+<button onclick="abrirPack()">📦 Abrir Pack de Jogadores (50M)</button>
+
+<button onclick="mostrarTime()">👥 Meu Time</button>
+
+<div id="cards"></div>
+
+</div>
+
+<script>
+
+let jogador={
+nome:"",
+dinheiro:800000000,
+cartas:[]
+}
+
+let jogadores=[
+"Messi",
+"Cristiano Ronaldo",
+"Neymar",
+"Mbappé",
+"Haaland",
+"Vinicius Jr",
+"Bellingham",
+"Rodrygo",
+"Salah",
+"Kane"
+]
+
+function criarConta(){
+
+let nome=document.getElementById("user").value
+
+if(nome==""){
+alert("Digite um nome")
+return
+}
+
+jogador.nome=nome
+
+document.getElementById("login").style.display="none"
+document.getElementById("jogo").style.display="block"
+
+document.getElementById("nome").innerText="Manager: "+nome
+
+atualizar()
+
+}
+
+function atualizar(){
+document.getElementById("dinheiro").innerText=jogador.dinheiro.toLocaleString()
+}
+
+function abrirPack(){
+
+if(jogador.dinheiro<50000000){
+alert("Dinheiro insuficiente")
+return
+}
+
+jogador.dinheiro-=50000000
+
+let carta=jogadores[Math.floor(Math.random()*jogadores.length)]
+
+let rating=Math.floor(Math.random()*20)+80
+
+jogador.cartas.push({
+nome:carta,
+rating:rating
+})
+
+alert("Você ganhou: "+carta+" ⭐"+rating)
+
+atualizar()
+
+}
+
+function mostrarTime(){
+
+let area=document.getElementById("cards")
+
+area.innerHTML=""
+
+jogador.cartas.forEach(c=>{
+
+area.innerHTML+=`
+<div class="card">
+<b>${c.nome}</b>
+<br>
+⭐ ${c.rating}
+</div>
+`
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
